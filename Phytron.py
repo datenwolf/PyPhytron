@@ -9,7 +9,7 @@ class ReceiveChecksumError(exceptions.Exception):
 		self.received = received
 		self.message = "Checksum Error: expected %x, got %x" % (expected, received)
 
-class OverrunError(exceptions.EnvironmentError):
+class RXBufferOverrunError(exceptions.EnvironmentError):
 	pass
 
 class NotNowWarning(exceptions.UserWarning):
@@ -136,7 +136,7 @@ class ExtendedStatus:
 		self.busy              = not not (bitvector & ExtendedStatus.BUSY)
 		self.programing_error  = not not (bitvector & ExtendedStatus.PROGRAMING_ERROR)
 		self.high_temperature  = not not (bitvector & ExtendedStatus.HIGH_TEMPERATURE)
-		self.initiator_error   = not not (bitvector & ExtendedStatus,INITIATOR_ERROR)
+		self.initiator_error   = not not (bitvector & ExtendedStatus.INITIATOR_ERROR)
 		self.internal_error    = not not (bitvector & ExtendedStatus.INTERNAL_ERROR)
 		self.driver_error      = not not (bitvector & ExtendedStatus.DRIVER_ERROR)
 		self.wait_for_sync     = not not (bitvector & ExtendedStatus.WAIT_FOR_SYNC)
@@ -236,7 +236,7 @@ class IPCOMM:
 				self.send( ('%X' % ID) + 'R')
 
 			if recv_data.status.rx_error:
-				extended_status = self.queryextendedstatus(ID)
+				extended_status = self.queryextendedstatus(ID).data
 
 				if extended_status.checksum_error:
 					self.conn.flushInput()
@@ -244,19 +244,19 @@ class IPCOMM:
 					recv_data = None
 					continue
 
-				if extended_status.overrun:
-					raise OverrunError()
+				if extended_status.rxbuffer_overrun:
+					raise RXBufferOverrunError()
 
 				if extended_status.not_now:
 					raise NotNowWarning()
 
-				if extended_status.unknown():
+				if extended_status.unknown_command:
 					raise UnknownCommand()
 
 				if extended_status.bad_value:
 					raise BadValueError()
 
-				if extended_status.parameter_limits():
+				if extended_status.parameter_limits:
 					raise ParameterLimitsError()
 
 
