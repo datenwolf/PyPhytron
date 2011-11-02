@@ -25,9 +25,10 @@ class ParameterLimitsError(exceptions.ValueError):
 	pass
 
 class Axis:
-	def __init__(self, ipcomm, ID):
+	def __init__(self, ipcomm, ID, name = None):
 		self.ipcomm = ipcomm
 		self.ID = ID
+		self.name = name
 
 	def execute(self, cmd):
 		result = self.ipcomm.execute(self.ID, cmd)
@@ -69,14 +70,14 @@ class Status:
 	INITIATOR_P       = (1<<1)
 	RUNNING           = (1<<0)
 	def __init__(self, bitvector):
-		self.coldboot          = not not (bitvector & (1<<7))
-		self.any_error         = not not (bitvector & (1<<6))
-		self.rx_error          = not not (bitvector & (1<<5))
-		self.SFI_error         = not not (bitvector & (1<<4))
-		self.outputstage_error = not not (bitvector & (1<<3))
-		self.initiator_m       = not not (bitvector & (1<<2))
-		self.initiator_p       = not not (bitvector & (1<<1))
-		self.running           = not not (bitvector & (1<<0))
+		self.coldboot          = not not (bitvector & Status.COLDBOOT)
+		self.any_error         = not not (bitvector & Status.ANY_ERROR)
+		self.rx_error          = not not (bitvector & Status.RX_ERROR)
+		self.SFI_error         = not not (bitvector & Status.SFI_ERROR)
+		self.outputstage_error = not not (bitvector & Status.OUTPUTSTAGE_ERROR)
+		self.initiator_m       = not not (bitvector & Status.INITIATOR_M)
+		self.initiator_p       = not not (bitvector & Status.INITIATOR_P)
+		self.running           = not not (bitvector & Status.RUNNING)
 	
 	def __str__(self):
 		status = list()
