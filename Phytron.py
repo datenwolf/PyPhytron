@@ -161,7 +161,7 @@ class IPCOMM:
 		self.conn.rtscts = False
 		self.conn.dsrdtr = False
 		self.conn.xonxoff = False
-		self.conn.timeout = 0.1
+		self.conn.timeout = 0.5
 		self.axisByID = dict()
 		self.axisByName = dict()
 		self.enumerate(axisnames)
@@ -172,20 +172,22 @@ class IPCOMM:
 		return self.axisByID[int(nameOrID)]
 
 	def enumerate(self, names=None):
+		# Use a only short timeout for enumeration.
+		oldtimeout = self.conn.timeout
+		self.conn.timeout = 0.05
 		self.axisByID.clear()
 		self.axisByName.clear()
 		for ID in range(0x10):
 			try:
-				assert self.execute(ID, 'IS?').ID == ID
-				axis = Axis(self, ID)
-				self.axisByID[ID] = axis
-
-				if (isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and ID < len(names)):
-					assert names[ID].isalpha()
-					self.axisByName[str(names[ID])] = axis
-
+				if self.execute(ID, 'IS?').ID == ID:
+					if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and ID < len(names))) and names[ID].isalpha():
+						axis = self.axisByName[str(names[ID])] = Axis(self, ID, names[ID])
+					else:
+						axis = Axis(self, ID)
+					self.axisByID[ID] = axis
 			except ReceiveTimeout:
 				continue
+		self.conn.timeout = oldtimeout
 
 	def send(self, data):
 		self.conn.write('\x02' + data + ':' + ('%02X' % checksum(data + ':')) + '\x03')
