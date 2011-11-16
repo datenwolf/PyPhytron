@@ -1,27 +1,27 @@
-import serial, string, exceptions
+import serial, string
 
-class ReceiveTimeout(exceptions.Exception):
+class ReceiveTimeout(Exception):
 	pass
 
-class ReceiveChecksumError(exceptions.Exception):
+class ReceiveChecksumError(Exception):
 	def __init__(self, expected, received):
 		self.expected = expected
 		self.received = received
 		self.message = "Checksum Error: expected %x, got %x" % (expected, received)
 
-class RXBufferOverrunError(exceptions.EnvironmentError):
+class RXBufferOverrunError(EnvironmentError):
 	pass
 
-class NotNowWarning(exceptions.UserWarning):
+class NotNowWarning(UserWarning):
 	pass
 
-class UnknownCommand(exceptions.Exception):
+class UnknownCommand(Exception):
 	pass
 
-class BadValueError(exceptions.Exception):
+class BadValueError(Exception):
 	pass
 
-class ParameterLimitsError(exceptions.ValueError):
+class ParameterLimitsError(ValueError):
 	pass
 
 class Axis:
@@ -66,8 +66,8 @@ class Status:
 	RX_ERROR          = (1<<5)
 	SFI_ERROR         = (1<<4)
 	OUTPUTSTAGE_ERROR = (1<<3)
-	INITIATOR_M       = (1<<2)
-	INITIATOR_P       = (1<<1)
+	INITIATOR_MINUS   = (1<<2)
+	INITIATOR_PLUS    = (1<<1)
 	RUNNING           = (1<<0)
 	def __init__(self, bitvector):
 		self.coldboot          = not not (bitvector & Status.COLDBOOT)
@@ -75,8 +75,8 @@ class Status:
 		self.rx_error          = not not (bitvector & Status.RX_ERROR)
 		self.SFI_error         = not not (bitvector & Status.SFI_ERROR)
 		self.outputstage_error = not not (bitvector & Status.OUTPUTSTAGE_ERROR)
-		self.initiator_m       = not not (bitvector & Status.INITIATOR_M)
-		self.initiator_p       = not not (bitvector & Status.INITIATOR_P)
+		self.initiator_minus   = not not (bitvector & Status.INITIATOR_MINUS)
+		self.initiator_plus    = not not (bitvector & Status.INITIATOR_PLUS)
 		self.running           = not not (bitvector & Status.RUNNING)
 	
 	def __str__(self):
@@ -91,9 +91,9 @@ class Status:
 			status += ['SFI Error']
 		if self.outputstage_error:
 			status += ['Output Stage Error']
-		if self.initiator_m:
+		if self.initiator_minus:
 			status += ['Initiator -']
-		if self.initiator_p:
+		if self.initiator_plus:
 			status += ['Initiator +']
 		if self.running:
 			status += ['Running']
