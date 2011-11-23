@@ -311,11 +311,13 @@ class IPCOMM:
 			self.conn.flushInput()
 			self.send( ('%X' % ID) + cmd )
 
+			retry_count = 0
 			while not recv_data and retry_count < self.max_retry_count:
 				try:
 					recv_data = self.recv()
 				except ReceiveChecksumError:
 					self.send( ('%X' % ID) + 'R')
+					retry_count += 1
 
 				if recv_data.status.rx_error:
 					extended_status = self.queryextendedstatus(ID).data
