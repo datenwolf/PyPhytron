@@ -307,7 +307,7 @@ class IPCOMM:
 
 		recv_data = None
 
-		with rlock:
+		with self.rlock:
 			self.conn.flushInput()
 			self.send( ('%X' % ID) + cmd )
 
@@ -360,7 +360,7 @@ class IPCOMM:
 		"""
 		recv_data = None
 
-		with rlock:
+		with self.rlock:
 			self.conn.flushInput()
 			self.send( ('%X' % ID) + 'IS?' )
 
