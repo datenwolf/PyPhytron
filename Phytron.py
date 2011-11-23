@@ -1,4 +1,4 @@
-import serial, string
+import serial, string, threading
 
 class ReceiveTimeout(Exception):
 	pass
@@ -196,7 +196,7 @@ class ExtendedStatus:
 		if self.no_ramps:
 			status += ["No Ramps"]
 		if self.parameter_changed:
-			status += ["Parameter Changes"]
+			status += ["Parameter Changed"]
 		if self.busy:
 			status += ["Busy"]
 		if self.programing_error:
@@ -228,7 +228,9 @@ class ReceiveData:
 		self.data = data
 
 class IPCOMM:
+	MAX_RETRY_COUNT = 5
 	def __init__(self, url, baudrate = 38400, axisnames = None):
+		self.rlock = threading.RLock()
 		self.conn = serial.serial_for_url(url)
 		self.conn.baudrate = baudrate
 		self.conn.parity = serial.PARITY_NONE
@@ -239,6 +241,7 @@ class IPCOMM:
 		self.axisByID = dict()
 		self.axisByName = dict()
 		self.enumerate(axisnames)
+		self.max_retry_count = IPCOMM.MAX_RETRY_COUNT
 
 	def axis(self, nameOrID):
 		if isinstance(nameOrID, str) and nameOrID.isalpha():
@@ -302,40 +305,41 @@ class IPCOMM:
 		if cmd == 'IS?':
 			return self.queryextendedstatus(ID)
 
-		self.conn.flushInput()
-		self.send( ('%X' % ID) + cmd )
-
 		recv_data = None
-		while not recv_data:
-			try:
-				recv_data = self.recv()
-			except ReceiveChecksumError:
-				self.send( ('%X' % ID) + 'R')
 
-			if recv_data.status.rx_error:
-				extended_status = self.queryextendedstatus(ID).data
+		with rlock:
+			self.conn.flushInput()
+			self.send( ('%X' % ID) + cmd )
 
-				if extended_status.checksum_error:
-					self.conn.flushInput()
-					self.send( ('%X' % ID) + cmd )
-					recv_data = None
-					continue
+			while not recv_data and retry_count < self.max_retry_count:
+				try:
+					recv_data = self.recv()
+				except ReceiveChecksumError:
+					self.send( ('%X' % ID) + 'R')
 
-				if extended_status.rxbuffer_overrun:
-					raise RXBufferOverrunError()
+				if recv_data.status.rx_error:
+					extended_status = self.queryextendedstatus(ID).data
 
-				if extended_status.not_now:
-					raise NotNowWarning()
+					if extended_status.checksum_error:
+						self.conn.flushInput()
+						self.send( ('%X' % ID) + cmd )
+						recv_data = None
+						continue
 
-				if extended_status.unknown_command:
-					raise UnknownCommand()
+					if extended_status.rxbuffer_overrun:
+						raise RXBufferOverrunError()
 
-				if extended_status.bad_value:
-					raise BadValueError()
+					if extended_status.not_now:
+						raise NotNowWarning()
 
-				if extended_status.parameter_limits:
-					raise ParameterLimitsError()
+					if extended_status.unknown_command:
+						raise UnknownCommand()
 
+					if extended_status.bad_value:
+						raise BadValueError()
+
+					if extended_status.parameter_limits:
+						raise ParameterLimitsError()
 
 		return recv_data
 
@@ -354,19 +358,21 @@ class IPCOMM:
 
 		If the extended status can not be requested, None is returned.
 		"""
-		self.conn.flushInput()
-		self.send( ('%X' % ID) + 'IS?' )
-
 		recv_data = None
-		try:
-			recv_data = self.recv()
-		except ReceiveChecksumError:
-			return None
 
-		if recv_data:
-			recv_data.data = ExtendedStatus(string.atoi(recv_data.data, 0x10))
-		else:
-			recv_data = None
+		with rlock:
+			self.conn.flushInput()
+			self.send( ('%X' % ID) + 'IS?' )
+
+			try:
+				recv_data = self.recv()
+			except ReceiveChecksumError:
+				return None
+
+			if recv_data:
+				recv_data.data = ExtendedStatus(string.atoi(recv_data.data, 0x10))
+			else:
+				recv_data = None
 
 		return recv_data
 	
