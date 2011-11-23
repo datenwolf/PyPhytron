@@ -177,6 +177,49 @@ class ExtendedStatus:
 		self.hw_disable        = not not (bitvector & ExtendedStatus.HW_DISABLE)
 		self.initializing      = not not (bitvector & ExtendedStatus.INITIALIZING)
 
+	def __str__(self):
+		status = list()
+		if self.checksum_error:
+			status += ["Checksum Error"]
+		if self.rxbuffer_overrun:
+			status += ["RX Buffer Overrun"]
+		if self.not_now:
+			status += ["Not Now"]
+		if self.unknown_command:
+			status += ["Unknown Command"]
+		if self.bad_value:
+			status += ["Bad Value"]
+		if self.parameter_limits:
+			status += ["Parameter Limits"]
+		if self.no_system:
+			status += ["Mo System"]
+		if self.no_ramps:
+			status += ["No Ramps"]
+		if self.parameter_changed:
+			status += ["Parameter Changes"]
+		if self.busy:
+			status += ["Busy"]
+		if self.programing_error:
+			status += ["Programming Error"]
+		if self.high_temperature:
+			status += ["High Temperature"]
+		if self.initiator_error:
+			status += ["Initiator Error"]
+		if self.driver_error:
+			status += ["Driver Error"]
+		if self.wait_for_sync:
+			status += ["Wait For Sync"]
+		if self.linear_axis:
+			status += ["Linear Axis"]
+		if self.free_running:
+			status += ["Free Running"]
+		if self.initialized:
+			status += ["Initialized"]
+		if self.hw_disable:
+			status += ["HW Disable"]
+		if self.initializing:
+			status += ["Initialzing"]
+		
 class ReceiveData:
 	def __init__(self, ID, status, data):
 		self.ID = ID
