@@ -61,7 +61,7 @@ class Axis:
 	def halt(self):
 		pass
 
-	def break(self):
+	def stop(self):
 		pass
 
 	def setRunCurrent(self, current):
