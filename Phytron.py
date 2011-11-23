@@ -219,6 +219,7 @@ class ExtendedStatus:
 			status += ["HW Disable"]
 		if self.initializing:
 			status += ["Initialzing"]
+		return '{'+ ('|'.join(status)) + '}'
 		
 class ReceiveData:
 	def __init__(self, ID, status, data):
