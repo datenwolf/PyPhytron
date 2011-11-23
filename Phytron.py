@@ -25,12 +25,26 @@ class ParameterLimitsError(ValueError):
 	pass
 
 class Axis:
+	"""
+	Abstraction for a IPCOMM Axis
+	Phytron IPCOMM devices are addressable by a 4 bit ID (i.e. range 0x0 = 0 ... 0xf = 15).
+	This allows for up to 16 IPCOMM devices being connected to a single communication bus.
+	Each device is a strict master/slave communication endpoint ultimately driving an
+	actuator. This is referred to as an Axis.
+	"""
 	def __init__(self, ipcomm, ID, name = None):
+		"""
+		ipcomm: a instance of Phytron.IPCOMM class, encapsulating a communication bus
+		name: The human readable name given to the axis (served not purpose in this class at the moment)
+		"""
 		self.ipcomm = ipcomm
 		self.ID = ID
 		self.name = name
 
 	def execute(self, cmd):
+		"""
+		Execute a command on the axis.
+		"""
 		result = self.ipcomm.execute(self.ID, cmd)
 		assert result.ID == self.ID
 		return result
@@ -41,17 +55,33 @@ class Axis:
 	def goToRelative(self, offset):
 		pass
 	
-	def goFree(self, direction):
+	def runFree(self, direction):
 		pass
 
-	def setAccelerationCurrent(self, current):
+	def halt(self):
 		pass
-	def getAccelerationCurrent(self, current):
+
+	def break(self):
+		pass
+
+	def setRunCurrent(self, current):
+		pass
+	def getRunCurrent(self):
+		pass
+
+	def setBoostCurrent(self, current):
+		pass
+	def getBoostCurrent(self):
+		pass
+
+	def setBoostDuration(self, duration):
+		pass
+	def getBoostDuration(self):
 		pass
 	
-	def setPosition(self, position):
+	def setCurrentPosition(self, position):
 		pass
-	def getPosition(self, position):
+	def getCurrentPosition(self, position):
 		pass
 
 def checksum(data):
@@ -275,7 +305,8 @@ class IPCOMM:
 		* will not raise status related exceptions
 
 		Since regular execute will raise exceptions based on IS? status
-		to query the status for further processing, this method must be used.
+		to query the status for further processing, this method must be
+		used instead to avoid infinite loops.
 
 		If the extended status can not be requested, None is returned.
 		"""
@@ -294,19 +325,4 @@ class IPCOMM:
 			recv_data = None
 
 		return recv_data
-	
-	def goToAbs(self, positions):
-		pass
-
-	def goToRelative(self, offset):
-		pass
-	
-	def goFree(self, direction):
-		pass
-
-	def setAccelerationCurrent(self, currents):
-		pass
-	
-	def setPosition(self, positions):
-		pass
 	
