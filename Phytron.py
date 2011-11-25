@@ -229,7 +229,7 @@ class ReceiveData:
 
 class IPCOMM:
 	MAX_RETRY_COUNT = 5
-	def __init__(self, url, baudrate = 38400, axes=range(0x10), axisnames = None):
+	def __init__(self, url, baudrate = 38400, axes=0x10, axisnames = None):
 		self.rlock = threading.RLock()
 		self.conn = serial.serial_for_url(url)
 		self.conn.baudrate = baudrate
@@ -248,8 +248,10 @@ class IPCOMM:
 			return self.axisByName[nameOrID]
 		return self.axisByID[int(nameOrID)]
 
-	def enumerate(self, axes=range(0x10), names=None):
+	def enumerate(self, axes=0x10, names=None):
 		# Use a only short timeout for enumeration.
+		if isinstance(axes, int):
+			axes = range(axes)
 		oldtimeout = self.conn.timeout
 		self.conn.timeout = 0.05
 		self.axisByID.clear()
