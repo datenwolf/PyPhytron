@@ -216,11 +216,11 @@ class Axis:
 	def initializeMinus(self):
 		return self.execute("GI-").status
 
-	def syncstartCommence():
+	def syncstartCommence(self):
 		return self.execute("GW").status
-	def syncstartExecute():
+	def syncstartExecute(self):
 		return self.execute("GX").status
-	def syncstartAbort():
+	def syncstartAbort(self):
 		return self.execute("GB").status
 
 	def halt(self):
@@ -240,9 +240,9 @@ class Axis:
 		return float(self.execute("PA??").data)
 
 	def setBoostDuration(self, duration):
-		return self.execute("PT%d" % int(duration * 1000)).status
+		return self.execute("PT%d" % int(duration * 1e3)).status
 	def getBoostDuration(self):
-		return float(self.execute("PT?").data) * 0.0001
+		return float(self.execute("PT?").data) * 1e-3
 	
 	def setHaltCurrent(self, current):
 		return self.execute("PS%1.1f" % current)
