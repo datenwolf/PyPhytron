@@ -229,7 +229,7 @@ class ReceiveData:
 
 class IPCOMM:
 	MAX_RETRY_COUNT = 5
-	def __init__(self, url, baudrate = 38400, axisnames = None):
+	def __init__(self, url, baudrate = 38400, axes=range(0x10), axisnames = None):
 		self.rlock = threading.RLock()
 		self.conn = serial.serial_for_url(url)
 		self.conn.baudrate = baudrate
@@ -240,7 +240,7 @@ class IPCOMM:
 		self.conn.timeout = 0.5
 		self.axisByID = dict()
 		self.axisByName = dict()
-		self.enumerate(axisnames)
+		self.enumerate(axes, axisnames)
 		self.max_retry_count = IPCOMM.MAX_RETRY_COUNT
 
 	def axis(self, nameOrID):
@@ -248,17 +248,21 @@ class IPCOMM:
 			return self.axisByName[nameOrID]
 		return self.axisByID[int(nameOrID)]
 
-	def enumerate(self, names=None):
+	def enumerate(self, axes=range(0x10), names=None):
 		# Use a only short timeout for enumeration.
 		oldtimeout = self.conn.timeout
 		self.conn.timeout = 0.05
 		self.axisByID.clear()
 		self.axisByName.clear()
-		for ID in range(0x10):
+		for i,ID in enumerate(axes):
 			try:
 				if self.execute(ID, 'IS?').ID == ID:
-					if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and ID < len(names))) and names[ID].isalpha():
-						axis = self.axisByName[str(names[ID])] = Axis(self, ID, names[ID])
+					if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and i < len(names))) and names[i].isalpha():
+						if (isinstance(names, dict):
+							axisname = names[ID]
+						else:
+							axisname = names[i]
+						axis = self.axisByName[str(axisname)] = Axis(self, ID, axisname)
 					else:
 						axis = Axis(self, ID)
 					self.axisByID[ID] = axis
