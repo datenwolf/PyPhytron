@@ -310,28 +310,30 @@ class IPCOMM:
 		return self.axisByID[int(nameOrID)]
 
 	def enumerate(self, axes=0x10, names=None):
-		# Use a only short timeout for enumeration.
 		if isinstance(axes, int):
 			axes = range(axes)
+		# Use a only short timeout for enumeration.
 		oldtimeout = self.conn.timeout
 		self.conn.timeout = 0.05
 		self.axisByID.clear()
 		self.axisByName.clear()
-		for i,ID in enumerate(axes):
-			try:
-				if self.execute(ID, 'IS?').ID == ID:
-					if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and i < len(names))) and names[i].isalpha():
-						if isinstance(names, dict):
-							axisname = names[ID]
+		try:
+			for i,ID in enumerate(axes):
+				try:
+					if self.execute(ID, 'IS?').ID == ID:
+						if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and i < len(names))) and names[i].isalpha():
+							if isinstance(names, dict):
+								axisname = names[ID]
+							else:
+								axisname = names[i]
+							axis = self.axisByName[str(axisname)] = Axis(self, ID, axisname)
 						else:
-							axisname = names[i]
-						axis = self.axisByName[str(axisname)] = Axis(self, ID, axisname)
-					else:
-						axis = Axis(self, ID)
-					self.axisByID[ID] = axis
-			except ReceiveTimeout:
-				continue
-		self.conn.timeout = oldtimeout
+							axis = Axis(self, ID)
+						self.axisByID[ID] = axis
+				except ReceiveTimeout:
+					continue
+		finally:
+			self.conn.timeout = oldtimeout
 
 	def send(self, data):
 		self.conn.write('\x02' + data + ':' + ('%02X' % checksum(data + ':')) + '\x03')
