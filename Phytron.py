@@ -24,66 +24,6 @@ class BadValueError(Exception):
 class ParameterLimitsError(ValueError):
 	pass
 
-class Axis:
-	"""
-	Abstraction for a IPCOMM Axis
-	Phytron IPCOMM devices are addressable by a 4 bit ID (i.e. range 0x0 = 0 ... 0xf = 15).
-	This allows for up to 16 IPCOMM devices being connected to a single communication bus.
-	Each device is a strict master/slave communication endpoint ultimately driving an
-	actuator. This is referred to as an Axis.
-	"""
-	def __init__(self, ipcomm, ID, name = None):
-		"""
-		ipcomm: a instance of Phytron.IPCOMM class, encapsulating a communication bus
-		name: The human readable name given to the axis (served not purpose in this class at the moment)
-		"""
-		self.ipcomm = ipcomm
-		self.ID = ID
-		self.name = name
-
-	def execute(self, cmd):
-		"""
-		Execute a command on the axis.
-		"""
-		result = self.ipcomm.execute(self.ID, cmd)
-		assert result.ID == self.ID
-		return result
-	
-	def goToAbs(self, position):
-		pass
-	
-	def goToRelative(self, offset):
-		pass
-	
-	def runFree(self, direction):
-		pass
-
-	def halt(self):
-		pass
-
-	def stop(self):
-		pass
-
-	def setRunCurrent(self, current):
-		pass
-	def getRunCurrent(self):
-		pass
-
-	def setBoostCurrent(self, current):
-		pass
-	def getBoostCurrent(self):
-		pass
-
-	def setBoostDuration(self, duration):
-		pass
-	def getBoostDuration(self):
-		pass
-	
-	def setCurrentPosition(self, position):
-		pass
-	def getCurrentPosition(self, position):
-		pass
-
 def checksum(data):
 	chksm = 0
 	for d in data:
@@ -226,6 +166,129 @@ class ReceiveData:
 		self.ID = ID
 		self.status = status
 		self.data = data
+
+class Axis:
+	"""
+	Abstraction for a IPCOMM Axis
+	Phytron IPCOMM devices are addressable by a 4 bit ID (i.e. range 0x0 = 0 ... 0xf = 15).
+	This allows for up to 16 IPCOMM devices being connected to a single communication bus.
+	Each device is a strict master/slave communication endpoint ultimately driving an
+	actuator. This is referred to as an Axis.
+	"""
+	def __init__(self, ipcomm, ID, name = None):
+		"""
+		ipcomm: a instance of Phytron.IPCOMM class, encapsulating a communication bus
+		name: The human readable name given to the axis (served not purpose in this class at the moment)
+		"""
+		self.ipcomm = ipcomm
+		self.ID = ID
+		self.name = name
+
+	def execute(self, cmd):
+		"""
+		Execute a command on the axis.
+		"""
+		result = self.ipcomm.execute(self.ID, cmd)
+		assert result.ID == self.ID
+		self.status = result.status
+		if isinstance(result.data, ExtendedStatus):
+			self.extended_status = result.data
+		return result
+	
+	def gotoAbs(self, position):
+		return self.execute("GA%d" % position).status
+	
+	def gotoRelative(self, offset):
+		return self.execute("GR%d" % offset).status
+	
+	def runForward(self):
+		return self.execute("GF+").status
+	def runBackward(self):
+		return self.execute("GF-").status
+	
+	def stepForward(self):
+		return self.execute("GS+").status
+	def stepBackward(self):
+		return self.execute("GS-").status
+
+	def initializePlus(self):
+		return self.execute("GI+").status
+	def initializeMinus(self):
+		return self.execute("GI-").status
+
+	def syncstartCommence():
+		return self.execute("GW").status
+	def syncstartExecute():
+		return self.execute("GX").status
+	def syncstartAbort():
+		return self.execute("GB").status
+
+	def halt(self):
+		return self.execute("H").status
+
+	def stop(self):
+		return self.execute("B").status
+
+	def setRunCurrent(self, current):
+		return self.execute("PR%1.1f" % current)
+	def getRunCurrent(self):
+		return float(self.execute("PR??").data)
+
+	def setBoostCurrent(self, current):
+		return self.execute("PA%1.1f" % current)
+	def getBoostCurrent(self):
+		return float(self.execute("PA??").data)
+
+	def setBoostDuration(self, duration):
+		return self.execute("PT%d" % int(duration * 1000)).status
+	def getBoostDuration(self):
+		return float(self.execute("PT?").data) * 0.0001
+	
+	def setHaltCurrent(self, current):
+		return self.execute("PS%1.1f" % current)
+	def getHaltCurrent(self):
+		return float(self.execute("PS??").data)
+	
+	def setCurrentPosition(self, position):
+		return self.execute("PC%d" % position).status
+	def getCurrentPosition(self):
+		return int(self.execute("PC?").data)
+
+	def setRunFrequency(self, freq):
+		return self.execute("PF%d" % freq).status
+	def getRunFrequency(self):
+		return int(self.execute("PF?").data)
+
+	def setOffsetFrequency(self, freq):
+		return self.execute("PO%d" % freq).status
+	def getOffsetFrequency(self):
+		return int(self.execute("PO?").data)
+	
+	def setRunLimit(self, limit):
+		if not limit:
+			limit = 0xffffffff
+		return self.execute("PG%d" % limit).status
+	def getRunLimit(self, position):
+		return int(self.execute("PG?").data)
+
+	def setOffsetMinus(self, offset):
+		return self.execute("PM%d" % offset).status
+	def getOffsetMinus(self):
+		return int(self.execute("PM?").data)
+
+	def setOffsetPlus(self, offset):
+		return self.execute("PP%d" % offset).status
+	def getOffsetPlus(self):
+		return int(self.execute("PP?").data)
+
+	def setAxisLimited(self, limited):
+		if limited:
+			limited = 1
+		else:
+			limited = 0
+		return self.execute("PL%d" % limited).status
+	def getAxisLimited(self):
+		return bool(int(self.execute("PL?").data))
 
 class IPCOMM:
 	MAX_RETRY_COUNT = 5
