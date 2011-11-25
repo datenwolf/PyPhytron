@@ -218,8 +218,6 @@ class Axis:
 
 	def syncstartCommence(self):
 		return self.execute("GW").status
-	def syncstartExecute(self):
-		return self.execute("GX").status
 	def syncstartAbort(self):
 		return self.execute("GB").status
 
@@ -447,3 +445,9 @@ class IPCOMM:
 
 		return recv_data
 	
+	def syncstartCommence(self):
+		self.broadcast("GW")
+	def syncstartExecute(self):
+		self.broadcast("GX")
+	def syncstartAbort(self):
+		self.broadcast("GB")
