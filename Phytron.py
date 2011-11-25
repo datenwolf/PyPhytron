@@ -260,7 +260,7 @@ class IPCOMM:
 			try:
 				if self.execute(ID, 'IS?').ID == ID:
 					if ((isinstance(names, dict) and names.haskey(ID)) or (isinstance(names, list) and i < len(names))) and names[i].isalpha():
-						if (isinstance(names, dict):
+						if isinstance(names, dict):
 							axisname = names[ID]
 						else:
 							axisname = names[i]
