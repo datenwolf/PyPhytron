@@ -247,9 +247,9 @@ class Axis:
 	def getHaltCurrent(self):
 		return float(self.execute("PS??").data)
 	
-	def setCurrentPosition(self, position):
+	def setPosition(self, position):
 		return self.execute("PC%d" % position).status
-	def getCurrentPosition(self):
+	def getPosition(self):
 		return int(self.execute("PC?").data)
 
 	def setRunFrequency(self, freq):
@@ -298,22 +298,41 @@ class Axis:
 
 	def setOutputs(self, outputstate):
 		outputs = 0
-		if isinstance(list, outputstate):
+		if isinstance(outputstate, list):
 			for i,s in enumerate(outputstate):
 				if not not outputstate[i]:
 					outputs |= 1<<i
 		else:
 			outputs = outputstate
-		return self.execute("IO%x" % outputs&0xf).status
+		return self.execute("IO%x" % (outputs & 0xf) ).status
 	def getOutputs(self):
-		outputstate = string.itoa(self.execute("IO?").data, 0x10)
-		outputs = [True if outputstate & 1<<i else False for i in range(8)]
+		outputstate = string.atoi(self.execute("IO?").data, 0x10)
+		outputs = [True if outputstate & 1<<i else False for i in range(4)]
 		return outputs
 
 	def getInputs(self):
-		inputstate = string.itoa(self.execute("II?").data, 0x10)
-		inputs = [True if outputstate & 1<<i else False for i in range(8)]
+		inputstate = string.atoi(self.execute("II?").data, 0x10)
+		inputs = [True if inputstate & 1<<i else False for i in range(8)]
 		return inputs
+
+	def clearDriverError():
+		return self.execute("CA").status
+	def clearInitiatorError():
+		return self.execute("CI").status
+	def clearOutputError():
+		return self.execute("CO").status
+
+	def resetHW():
+		return self.execute("CR").status
+	def resetSFI():
+		return self.execute("CS").status
+
+	def getDriverTemp():
+		return int(self.execute("SA?").data)
+	def getDriverCurrent():
+		return int(self.execute("SC?").data)
+	def getDriverVoltage():
+		return int(self.execute("SU?").data)
 
 class IPCOMM:
 	MAX_RETRY_COUNT = 5
