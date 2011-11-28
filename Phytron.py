@@ -355,6 +355,21 @@ class IPCOMM:
 			return self.axisByName[nameOrID]
 		return self.axisByID[int(nameOrID)]
 
+	def __len__(self):	
+		return len(self.axisByID.keys())
+	
+	def __iter__(self):
+		return self.axisByID.itervalues()
+
+	def __getitem__(self, key):
+		try:
+			return self.axis(key)
+		except KeyError:
+			raise IndexError(key)
+	
+	def __contains__(self, item):
+		return item in self.axisByName.keys() or item in self.axisByID.keys()
+
 	def enumerate(self, axes=0x10, names=None):
 		if isinstance(axes, int):
 			axes = range(axes)
