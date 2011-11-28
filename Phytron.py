@@ -30,7 +30,7 @@ def checksum(data):
 		chksm = chksm ^ ord(d)
 	return chksm
 
-class Status:
+class Status(object):
 	COLDBOOT          = (1<<7)
 	ANY_ERROR         = (1<<6)
 	RX_ERROR          = (1<<5)
@@ -39,15 +39,26 @@ class Status:
 	INITIATOR_MINUS   = (1<<2)
 	INITIATOR_PLUS    = (1<<1)
 	RUNNING           = (1<<0)
-	def __init__(self, bitvector):
-		self.coldboot          = not not (bitvector & Status.COLDBOOT)
-		self.any_error         = not not (bitvector & Status.ANY_ERROR)
-		self.rx_error          = not not (bitvector & Status.RX_ERROR)
-		self.SFI_error         = not not (bitvector & Status.SFI_ERROR)
-		self.outputstage_error = not not (bitvector & Status.OUTPUTSTAGE_ERROR)
-		self.initiator_minus   = not not (bitvector & Status.INITIATOR_MINUS)
-		self.initiator_plus    = not not (bitvector & Status.INITIATOR_PLUS)
-		self.running           = not not (bitvector & Status.RUNNING)
+	def __init__(self, status):
+		if isinstance(status, Status):
+			self.coldboot  = status.coldboot
+			self.any_error = status.any_error
+			self.rx_error  = status.rx_error
+			self.SFI_error = status.SFI_error
+			self.outputstage_error = status.outputstage_error
+			self.initiator_plus  = status.initiator_plus
+			self.initiator_minus = status.initiator_minus
+			self.running = status.running
+		if isinstance(status, int):
+			bitvector = status
+			self.coldboot          = not not (bitvector & Status.COLDBOOT)
+			self.any_error         = not not (bitvector & Status.ANY_ERROR)
+			self.rx_error          = not not (bitvector & Status.RX_ERROR)
+			self.SFI_error         = not not (bitvector & Status.SFI_ERROR)
+			self.outputstage_error = not not (bitvector & Status.OUTPUTSTAGE_ERROR)
+			self.initiator_minus   = not not (bitvector & Status.INITIATOR_MINUS)
+			self.initiator_plus    = not not (bitvector & Status.INITIATOR_PLUS)
+			self.running           = not not (bitvector & Status.RUNNING)
 	
 	def __str__(self):
 		status = list()
@@ -69,7 +80,7 @@ class Status:
 			status += ['Running']
 		return '{'+ ('|'.join(status)) + '}'
 
-class ExtendedStatus:
+class ExtendedStatus(Status):
 	CHECKSUM_ERROR   = (1<<23)
 	                 # (1<<22)
 	RXBUFFER_OVERRUN = (1<<21)
@@ -94,7 +105,8 @@ class ExtendedStatus:
 	INITIALIZED   = (1<< 2)
 	HW_DISABLE    = (1<< 1)
 	INITIALIZING  = (1<< 0)
-	def __init__(self, bitvector):
+	def __init__(self, bitvector, simplestatus):
+		super(ExtendedStatus, self).__init__(simplestatus)
 		self.checksum_error    = not not (bitvector & ExtendedStatus.CHECKSUM_ERROR)
 		self.rxbuffer_overrun  = not not (bitvector & ExtendedStatus.RXBUFFER_OVERRUN)
 		self.not_now           = not not (bitvector & ExtendedStatus.NOT_NOW)
@@ -119,6 +131,22 @@ class ExtendedStatus:
 
 	def __str__(self):
 		status = list()
+		if self.coldboot:
+			status += ['Cold Boot']
+		if self.any_error:
+			status += ['Any Error']
+		if self.rx_error:
+			status += ['RX Error']
+		if self.SFI_error:
+			status += ['SFI Error']
+		if self.outputstage_error:
+			status += ['Output Stage Error']
+		if self.initiator_minus:
+			status += ['Initiator -']
+		if self.initiator_plus:
+			status += ['Initiator +']
+		if self.running:
+			status += ['Running']
 		if self.checksum_error:
 			status += ["Checksum Error"]
 		if self.rxbuffer_overrun:
@@ -159,7 +187,7 @@ class ExtendedStatus:
 			status += ["HW Disable"]
 		if self.initializing:
 			status += ["Initialzing"]
-		return '{'+ ('|'.join(status)) + '}'
+		return '{' +  ('|'.join(status)) +'}'
 		
 class ReceiveData:
 	def __init__(self, ID, status, data):
@@ -167,7 +195,7 @@ class ReceiveData:
 		self.status = status
 		self.data = data
 
-class Axis:
+class Axis(object):
 	"""
 	Abstraction for a IPCOMM Axis
 	Phytron IPCOMM devices are addressable by a 4 bit ID (i.e. range 0x0 = 0 ... 0xf = 15).
@@ -194,6 +222,9 @@ class Axis:
 		if isinstance(result.data, ExtendedStatus):
 			self.extended_status = result.data
 		return result
+
+	def getFullStatus(self):
+		return self.execute("IS?").data
 	
 	def gotoAbs(self, position):
 		return self.execute("GA%d" % position).status
@@ -334,7 +365,7 @@ class Axis:
 	def getDriverVoltage():
 		return int(self.execute("SU?").data)
 
-class IPCOMM:
+class IPCOMM(object):
 	MAX_RETRY_COUNT = 5
 	def __init__(self, url, baudrate = 38400, axes=0x10, axisnames = None):
 		self.rlock = threading.RLock()
@@ -502,7 +533,7 @@ class IPCOMM:
 				return None
 
 			if recv_data:
-				recv_data.data = ExtendedStatus(string.atoi(recv_data.data, 0x10))
+				recv_data.data = ExtendedStatus(string.atoi(recv_data.data, 0x10), recv_data.status)
 			else:
 				recv_data = None
 
