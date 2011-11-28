@@ -256,6 +256,9 @@ class Axis:
 		return self.execute("PF%d" % freq).status
 	def getRunFrequency(self):
 		return int(self.execute("PF?").data)
+	
+	def getMaxFrequency(self):
+		return int(self.execute("IF?").data)
 
 	def setOffsetFrequency(self, freq):
 		return self.execute("PO%d" % freq).status
@@ -287,6 +290,30 @@ class Axis:
 		return self.execute("PL%d" % limited).status
 	def getAxisLimited(self):
 		return bool(int(self.execute("PL?").data))
+
+	def setDeltaZero(self, deltazero):
+		return self.execute("IZ%d" % deltazero).status
+	def getDeltaZero(self):
+		return int(self.execute("IZ?"))
+
+	def setOutputs(self, outputstate):
+		outputs = 0
+		if isinstance(list, outputstate):
+			for i,s in enumerate(outputstate):
+				if not not outputstate[i]:
+					outputs |= 1<<i
+		else:
+			outputs = outputstate
+		return self.execute("IO%x" % outputs&0xf).status
+	def getOutputs(self):
+		outputstate = string.itoa(self.execute("IO?").data, 0x10)
+		outputs = [True if outputstate & 1<<i else False for i in range(8)]
+		return outputs
+
+	def getInputs(self):
+		inputstate = string.itoa(self.execute("II?").data, 0x10)
+		inputs = [True if outputstate & 1<<i else False for i in range(8)]
+		return inputs
 
 class IPCOMM:
 	MAX_RETRY_COUNT = 5
