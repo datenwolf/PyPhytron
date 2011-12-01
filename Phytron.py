@@ -131,22 +131,7 @@ class ExtendedStatus(Status):
 
 	def __str__(self):
 		status = list()
-		if self.coldboot:
-			status += ['Cold Boot']
-		if self.any_error:
-			status += ['Any Error']
-		if self.rx_error:
-			status += ['RX Error']
-		if self.SFI_error:
-			status += ['SFI Error']
-		if self.outputstage_error:
-			status += ['Output Stage Error']
-		if self.initiator_minus:
-			status += ['Initiator -']
-		if self.initiator_plus:
-			status += ['Initiator +']
-		if self.running:
-			status += ['Running']
+		simplestatus_str = Status.__str__(self)[1:-1]
 		if self.checksum_error:
 			status += ["Checksum Error"]
 		if self.rxbuffer_overrun:
@@ -187,7 +172,7 @@ class ExtendedStatus(Status):
 			status += ["HW Disable"]
 		if self.initializing:
 			status += ["Initialzing"]
-		return '{' +  ('|'.join(status)) +'}'
+		return '{' + '|'.join((simplestatus_str, '|'.join(status))) +'}'
 		
 class ReceiveData:
 	def __init__(self, ID, status, data):
