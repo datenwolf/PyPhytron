@@ -367,7 +367,7 @@ class Axis(object):
 
 class IPCOMM(object):
 	MAX_RETRY_COUNT = 5
-	def __init__(self, url, baudrate = 38400, axes=0x10, axisnames = None):
+	def __init__(self, url, baudrate = 38400, axes = 0x10, axisnames = None):
 		self.rlock = threading.RLock()
 		self.conn = serial.serial_for_url(url)
 		self.conn.baudrate = baudrate
