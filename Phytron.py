@@ -51,14 +51,14 @@ class Status(object):
 			self.running = status.running
 		if isinstance(status, int):
 			bitvector = status
-			self.coldboot          = not not (bitvector & Status.COLDBOOT)
-			self.any_error         = not not (bitvector & Status.ANY_ERROR)
-			self.rx_error          = not not (bitvector & Status.RX_ERROR)
-			self.SFI_error         = not not (bitvector & Status.SFI_ERROR)
-			self.outputstage_error = not not (bitvector & Status.OUTPUTSTAGE_ERROR)
-			self.initiator_minus   = not not (bitvector & Status.INITIATOR_MINUS)
-			self.initiator_plus    = not not (bitvector & Status.INITIATOR_PLUS)
-			self.running           = not not (bitvector & Status.RUNNING)
+			self.coldboot          = bool(bitvector & Status.COLDBOOT)
+			self.any_error         = bool(bitvector & Status.ANY_ERROR)
+			self.rx_error          = bool(bitvector & Status.RX_ERROR)
+			self.SFI_error         = bool(bitvector & Status.SFI_ERROR)
+			self.outputstage_error = bool(bitvector & Status.OUTPUTSTAGE_ERROR)
+			self.initiator_minus   = bool(bitvector & Status.INITIATOR_MINUS)
+			self.initiator_plus    = bool(bitvector & Status.INITIATOR_PLUS)
+			self.running           = bool(bitvector & Status.RUNNING)
 	
 	def __str__(self):
 		status = list()
@@ -107,27 +107,27 @@ class ExtendedStatus(Status):
 	INITIALIZING  = (1<< 0)
 	def __init__(self, bitvector, simplestatus):
 		super(ExtendedStatus, self).__init__(simplestatus)
-		self.checksum_error    = not not (bitvector & ExtendedStatus.CHECKSUM_ERROR)
-		self.rxbuffer_overrun  = not not (bitvector & ExtendedStatus.RXBUFFER_OVERRUN)
-		self.not_now           = not not (bitvector & ExtendedStatus.NOT_NOW)
-		self.unknown_command   = not not (bitvector & ExtendedStatus.UNKNOWN_COMMAND)
-		self.bad_value         = not not (bitvector & ExtendedStatus.BAD_VALUE)
-		self.parameter_limits  = not not (bitvector & ExtendedStatus.PARAMETER_LIMITS)
-		self.no_system         = not not (bitvector & ExtendedStatus.NO_SYSTEM)
-		self.no_ramps          = not not (bitvector & ExtendedStatus.NO_RAMPS)
-		self.parameter_changed = not not (bitvector & ExtendedStatus.PARAMETER_CHANGED)
-		self.busy              = not not (bitvector & ExtendedStatus.BUSY)
-		self.programing_error  = not not (bitvector & ExtendedStatus.PROGRAMING_ERROR)
-		self.high_temperature  = not not (bitvector & ExtendedStatus.HIGH_TEMPERATURE)
-		self.initiator_error   = not not (bitvector & ExtendedStatus.INITIATOR_ERROR)
-		self.internal_error    = not not (bitvector & ExtendedStatus.INTERNAL_ERROR)
-		self.driver_error      = not not (bitvector & ExtendedStatus.DRIVER_ERROR)
-		self.wait_for_sync     = not not (bitvector & ExtendedStatus.WAIT_FOR_SYNC)
-		self.linear_axis       = not not (bitvector & ExtendedStatus.LINEAR_AXIS)
-		self.free_running      = not not (bitvector & ExtendedStatus.FREE_RUNNING)
-		self.initialized       = not not (bitvector & ExtendedStatus.INITIALIZED)
-		self.hw_disable        = not not (bitvector & ExtendedStatus.HW_DISABLE)
-		self.initializing      = not not (bitvector & ExtendedStatus.INITIALIZING)
+		self.checksum_error    = bool(bitvector & ExtendedStatus.CHECKSUM_ERROR)
+		self.rxbuffer_overrun  = bool(bitvector & ExtendedStatus.RXBUFFER_OVERRUN)
+		self.not_now           = bool(bitvector & ExtendedStatus.NOT_NOW)
+		self.unknown_command   = bool(bitvector & ExtendedStatus.UNKNOWN_COMMAND)
+		self.bad_value         = bool(bitvector & ExtendedStatus.BAD_VALUE)
+		self.parameter_limits  = bool(bitvector & ExtendedStatus.PARAMETER_LIMITS)
+		self.no_system         = bool(bitvector & ExtendedStatus.NO_SYSTEM)
+		self.no_ramps          = bool(bitvector & ExtendedStatus.NO_RAMPS)
+		self.parameter_changed = bool(bitvector & ExtendedStatus.PARAMETER_CHANGED)
+		self.busy              = bool(bitvector & ExtendedStatus.BUSY)
+		self.programing_error  = bool(bitvector & ExtendedStatus.PROGRAMING_ERROR)
+		self.high_temperature  = bool(bitvector & ExtendedStatus.HIGH_TEMPERATURE)
+		self.initiator_error   = bool(bitvector & ExtendedStatus.INITIATOR_ERROR)
+		self.internal_error    = bool(bitvector & ExtendedStatus.INTERNAL_ERROR)
+		self.driver_error      = bool(bitvector & ExtendedStatus.DRIVER_ERROR)
+		self.wait_for_sync     = bool(bitvector & ExtendedStatus.WAIT_FOR_SYNC)
+		self.linear_axis       = bool(bitvector & ExtendedStatus.LINEAR_AXIS)
+		self.free_running      = bool(bitvector & ExtendedStatus.FREE_RUNNING)
+		self.initialized       = bool(bitvector & ExtendedStatus.INITIALIZED)
+		self.hw_disable        = bool(bitvector & ExtendedStatus.HW_DISABLE)
+		self.initializing      = bool(bitvector & ExtendedStatus.INITIALIZING)
 
 	def __str__(self):
 		status = list()
@@ -331,7 +331,7 @@ class Axis(object):
 		outputs = 0
 		if isinstance(outputstate, list):
 			for i,s in enumerate(outputstate):
-				if not not outputstate[i]:
+				if outputstate[i]:
 					outputs |= 1<<i
 		else:
 			outputs = outputstate
