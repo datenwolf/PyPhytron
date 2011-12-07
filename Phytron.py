@@ -211,11 +211,13 @@ class Axis(object):
 	def getFullStatus(self):
 		return self.execute("IS?").data
 	
-	def gotoAbs(self, position):
+	def gotoAbsolute(self, position):
 		return self.execute("GA%d" % position).status
+	gotoAbs = gotoAbsolute
 	
 	def gotoRelative(self, offset):
 		return self.execute("GR%d" % offset).status
+	gotoRel = gotoRelative
 	
 	def runForward(self):
 		return self.execute("GF+").status
@@ -247,39 +249,47 @@ class Axis(object):
 		return self.execute("PR%1.1f" % current)
 	def getRunCurrent(self):
 		return float(self.execute("PR??").data)
+	run_current = property(getRunCurrent, setRunCurrent)
 
 	def setBoostCurrent(self, current):
 		return self.execute("PA%1.1f" % current)
 	def getBoostCurrent(self):
 		return float(self.execute("PA??").data)
+	boost_current = property(getBoostCurrent, setBoostCurrent)
 
 	def setBoostDuration(self, duration):
 		return self.execute("PT%d" % int(duration * 1e3)).status
 	def getBoostDuration(self):
 		return float(self.execute("PT?").data) * 1e-3
+	boost_duration = property(getBoostDuration, setBoostDuration)
 	
 	def setHaltCurrent(self, current):
 		return self.execute("PS%1.1f" % current)
 	def getHaltCurrent(self):
 		return float(self.execute("PS??").data)
+	halt_current = property(getHaltCurrent, setHaltCurrent)
 	
 	def setPosition(self, position):
 		return self.execute("PC%d" % position).status
 	def getPosition(self):
 		return int(self.execute("PC?").data)
+	position = property(getPosition, setPosition)
 
 	def setRunFrequency(self, freq):
 		return self.execute("PF%d" % freq).status
 	def getRunFrequency(self):
 		return int(self.execute("PF?").data)
+	run_frequency = property(getRunFrequency, setRunFrequency)
 	
 	def getMaxFrequency(self):
 		return int(self.execute("IF?").data)
+	max_frequency = property(getMaxFrequency)
 
 	def setOffsetFrequency(self, freq):
 		return self.execute("PO%d" % freq).status
 	def getOffsetFrequency(self):
 		return int(self.execute("PO?").data)
+	offset_frequency = property(getOffsetFrequency, setOffsetFrequency)
 	
 	def setRunLimit(self, limit):
 		if not limit:
@@ -287,30 +297,35 @@ class Axis(object):
 		return self.execute("PG%d" % limit).status
 	def getRunLimit(self, position):
 		return int(self.execute("PG?").data)
+	run_limit = property(getRunLimit, setRunLimit)
 
 	def setOffsetMinus(self, offset):
 		return self.execute("PM%d" % offset).status
 	def getOffsetMinus(self):
 		return int(self.execute("PM?").data)
+	offset_minus = property(getOffsetMinus, setOffsetMinus)
 
 	def setOffsetPlus(self, offset):
 		return self.execute("PP%d" % offset).status
 	def getOffsetPlus(self):
 		return int(self.execute("PP?").data)
+	offset_plus = property(getOffsetPlus, setOffsetPlus)
 
-	def setAxisLimited(self, limited):
+	def setLimited(self, limited):
 		if limited:
 			limited = 1
 		else:
 			limited = 0
 		return self.execute("PL%d" % limited).status
-	def getAxisLimited(self):
+	def getLimited(self):
 		return bool(int(self.execute("PL?").data))
+	limited = property(getLimited, setLimited)
 
 	def setDeltaZero(self, deltazero):
 		return self.execute("IZ%d" % deltazero).status
 	def getDeltaZero(self):
 		return int(self.execute("IZ?"))
+	delta_zero = property(getDeltaZero, setDeltaZero)
 
 	def setOutputs(self, outputstate):
 		outputs = 0
@@ -325,11 +340,13 @@ class Axis(object):
 		outputstate = string.atoi(self.execute("IO?").data, 0x10)
 		outputs = [True if outputstate & 1<<i else False for i in range(4)]
 		return outputs
+	outputs = property(getOutputs, setOutputs)
 
 	def getInputs(self):
 		inputstate = string.atoi(self.execute("II?").data, 0x10)
 		inputs = [True if inputstate & 1<<i else False for i in range(8)]
 		return inputs
+	inputs = property(getInputs)
 
 	def clearDriverError():
 		return self.execute("CA").status
@@ -343,12 +360,17 @@ class Axis(object):
 	def resetSFI():
 		return self.execute("CS").status
 
-	def getDriverTemp():
+	def getDriverTemperature():
 		return int(self.execute("SA?").data)
+	driver_temperature = property(getDriverTemperature)
+
 	def getDriverCurrent():
 		return int(self.execute("SC?").data)
+	driver_current = property(getDriverCurrent)
+
 	def getDriverVoltage():
 		return int(self.execute("SU?").data)
+	driver_voltage = property(getDriverVoltage)
 
 class IPCOMM(object):
 	MAX_RETRY_COUNT = 5
