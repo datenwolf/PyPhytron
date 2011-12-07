@@ -203,13 +203,15 @@ class Axis(object):
 		"""
 		result = self.ipcomm.execute(self.ID, cmd)
 		assert result.ID == self.ID
-		self.status = result.status
-		if isinstance(result.data, ExtendedStatus):
-			self.extended_status = result.data
+#		self.status = result.status
+#		if isinstance(result.data, ExtendedStatus):
+#			self.extended_status = result.data
 		return result
 
 	def getFullStatus(self):
 		return self.execute("IS?").data
+	status = property(getFullStatus)
+	getStatus = getFullStatus
 	
 	def gotoAbsolute(self, position):
 		return self.execute("GA%d" % position).status
@@ -348,27 +350,27 @@ class Axis(object):
 		return inputs
 	inputs = property(getInputs)
 
-	def clearDriverError():
+	def clearDriverError(self):
 		return self.execute("CA").status
-	def clearInitiatorError():
+	def clearInitiatorError(self):
 		return self.execute("CI").status
-	def clearOutputError():
+	def clearOutputError(self):
 		return self.execute("CO").status
 
-	def resetHW():
+	def resetHW(self):
 		return self.execute("CR").status
-	def resetSFI():
+	def resetSFI(self):
 		return self.execute("CS").status
 
-	def getDriverTemperature():
+	def getDriverTemperature(self):
 		return int(self.execute("SA?").data)
 	driver_temperature = property(getDriverTemperature)
 
-	def getDriverCurrent():
+	def getDriverCurrent(self):
 		return int(self.execute("SC?").data)
 	driver_current = property(getDriverCurrent)
 
-	def getDriverVoltage():
+	def getDriverVoltage(self):
 		return int(self.execute("SU?").data)
 	driver_voltage = property(getDriverVoltage)
 
